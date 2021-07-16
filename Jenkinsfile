@@ -6,7 +6,7 @@ pipeline {
 		APP_REPO_NAME = "mehmetafsar510"
         APP_NAME = "phonebook"
         AWS_STACK_NAME = "MehmetK8s-Phonebook-App-${BUILD_NUMBER}"
-        CFN_TEMPLATE="kubernetes-env-cfn.yml"
+        CFN_TEMPLATE="kubernetes-env-cf.yml"
         CFN_KEYPAIR="the_doctor"
         HOME_FOLDER = "/home/ubuntu"
         GIT_FOLDER = sh(script:'echo ${GIT_URL} | sed "s/.*\\///;s/.git$//"', returnStdout:true).trim()
@@ -15,32 +15,32 @@ pipeline {
 		stage('Build Docker Result Image') {
 			steps {
 				sh 'docker build -t phonebook:latest ${GIT_URL}#:result'
-				sh 'docker tag phonebook:latest $APP_REPO_NAME/phonebook-results:latest'
-				sh 'docker tag phonebook:latest $APP_REPO_NAME/phonebook-results:${BUILD_ID}'
+				sh 'docker tag phonebook:latest $APP_REPO_NAME/phonebook-result:latest'
+				sh 'docker tag phonebook:latest $APP_REPO_NAME/phonebook-result:${BUILD_ID}'
 				sh 'docker images'
 			}
 		}
         stage('Build Docker Update Image') {
 			steps {
 				sh 'docker build -t phonebook:latest ${GIT_URL}#:kubernetes'
-				sh 'docker tag phonebook:latest $APP_REPO_NAME/phonebook-updates:latest'
-				sh 'docker tag phonebook:latest $APP_REPO_NAME/phonebook-updates:${BUILD_ID}'
+				sh 'docker tag phonebook:latest $APP_REPO_NAME/phonebook-update:latest'
+				sh 'docker tag phonebook:latest $APP_REPO_NAME/phonebook-update:${BUILD_ID}'
 				sh 'docker images'
 			}
 		}
 		stage('Push Result Image to Docker Hub') {
 			steps {
 				withDockerRegistry([ credentialsId: "dockerhub_id", url: "" ]) {
-				sh 'docker push $APP_REPO_NAME/phonebook-updates:latest'
-				sh 'docker push $APP_REPO_NAME/phonebook-updates:${BUILD_ID}'
+				sh 'docker push $APP_REPO_NAME/phonebook-update:latest'
+				sh 'docker push $APP_REPO_NAME/phonebook-update:${BUILD_ID}'
 				}
 			}
 		}
         stage('Push Update Image to Docker Hub') {
 			steps {
 				withDockerRegistry([ credentialsId: "dockerhub_id", url: "" ]) {
-				sh 'docker push $APP_REPO_NAME/phonebook-results:latest'
-				sh 'docker push $APP_REPO_NAME/phonebook-results:${BUILD_ID}'
+				sh 'docker push $APP_REPO_NAME/phonebook-result:latest'
+				sh 'docker push $APP_REPO_NAME/phonebook-result:${BUILD_ID}'
 				}
 			}
 		}
