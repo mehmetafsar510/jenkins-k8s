@@ -69,23 +69,23 @@ pipeline {
         stage('Test the infrastructure') {
             steps {
                 echo "Testing if the K8s cluster is ready or not Master Public Ip Address: ${MASTER_INSTANCE_PUBLIC_IP}"
-            script {
-                sshagent(credentials : ['my-ssh-key']) {
-                    while(true) {
-                        try {
-                          sh 'ssh -t -t ubuntu@\"${MASTER_INSTANCE_PUBLIC_IP}" -o StrictHostKeyChecking=no kubectl get nodes | grep -i kube-worker-1'
-                          echo "Successfully created K8s cluster."
-                          break
-                        }
-                        catch(Exception) {
-                          echo 'Could not create K8s cluster please wait'
-                          sleep(5)   
+                script {
+                    sshagent(credentials : ['my-ssh-key']) {
+                        while(true) {
+                            try {
+                              sh 'ssh -t -t ubuntu@\"${MASTER_INSTANCE_PUBLIC_IP}" -o StrictHostKeyChecking=no kubectl get nodes | grep -i kube-worker-1'
+                              echo "Successfully created K8s cluster."
+                              break
+                            }
+                            catch(Exception) {
+                              echo 'Could not create K8s cluster please wait'
+                              sleep(5)   
+                            }
                         }
                     }
                 }
             }
         }
-    }
         stage('Check the App File') {
             steps { 
                 script {
