@@ -68,12 +68,12 @@ pipeline {
         }
         stage('Test the infrastructure') {
             steps {
-                echo "Testing if the K8s cluster is ready or not"
+                echo "Testing if the K8s cluster is ready or not Master Public Ip Address: ${MASTER_INSTANCE_PUBLIC_IP}"
             script {
                 sshagent(credentials : ['my-ssh-key']) {
                     while(true) {
                         try {
-                          sh "ssh -t -t ubuntu@${MASTER_INSTANCE_PUBLIC_IP} -o StrictHostKeyChecking=no kubectl get nodes | grep -i 'kube-worker-1'"
+                          sh 'ssh -t -t ubuntu@\"${MASTER_INSTANCE_PUBLIC_IP}" -o StrictHostKeyChecking=no kubectl get nodes | grep -i kube-worker-1'
                           echo "Successfully created K8s cluster."
                           break
                         }
@@ -90,8 +90,8 @@ pipeline {
             steps { 
                 script {
 				    sshagent(credentials : ['my-ssh-key']) {
-                        sh "ssh -t -t ubuntu@${MASTER_INSTANCE_PUBLIC_IP} -o StrictHostKeyChecking=no 'https://github.com/mehmetafsar510/jenkins-k8s.git && chmod u+r+x deploy.sh && sed -i -e 's/\r$//' deploy.sh && \
-sh deploy.sh || kubectl set image deployment/phonebook-deployment phonebook=mehmet/phonebook:${BUILD_ID} --record'"
+                        sh 'ssh -t -t ubuntu@\"${MASTER_INSTANCE_PUBLIC_IP}" -o StrictHostKeyChecking=no https://github.com/mehmetafsar510/jenkins-k8s.git && chmod u+r+x deploy.sh && sed -i -e 's/\r$//' deploy.sh && \
+sh deploy.sh || kubectl set image deployment/phonebook-deployment phonebook=mehmet/phonebook:${BUILD_ID} --record'
                      }
                 }
             }
