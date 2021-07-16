@@ -90,8 +90,9 @@ pipeline {
             steps { 
                 script {
 				    sshagent(credentials : ['my-ssh-key']) {
-                        sh 'ssh -t -t ubuntu@\"${MASTER_INSTANCE_PUBLIC_IP}" -o StrictHostKeyChecking=no https://github.com/mehmetafsar510/jenkins-k8s.git && chmod 777 start.sh && sh start.sh &&  \
-sh deploy.sh || kubectl set image deployment/phonebook-deployment phonebook=mehmet/phonebook:${BUILD_ID} --record'
+                        sh 'ssh -t -t ubuntu@\"${MASTER_INSTANCE_PUBLIC_IP}" -o StrictHostKeyChecking=no git clone ${GIT_URL}'
+                        sh 'ssh -t -t ubuntu@\"${MASTER_INSTANCE_PUBLIC_IP}" -o StrictHostKeyChecking=no cd ${HOME_FOLDER}/${GIT_FOLDER} && chmod 777 start.sh && sh start.sh'
+                        sh 'ssh -t -t ubuntu@\"${MASTER_INSTANCE_PUBLIC_IP}" -o StrictHostKeyChecking=no cd ${HOME_FOLDER}/${GIT_FOLDER} && sh deploy.sh'
                      }
                 }
             }
