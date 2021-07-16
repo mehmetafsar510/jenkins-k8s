@@ -99,8 +99,12 @@ sh deploy.sh || kubectl set image deployment/phonebook-deployment phonebook=mehm
 	}
  	post {
         	always {
-            		echo 'Deleting all local images'
+            	echo 'Deleting all local images'
             	sh 'docker image prune -af'
         	}
+            failure { 
+                echo 'Deleting Cloudformation Stack due to the Failure'
+                sh 'aws cloudformation delete-stack --region ${AWS_REGION} --stack-name ${AWS_STACK_NAME}'
+            }
 	}
 }
