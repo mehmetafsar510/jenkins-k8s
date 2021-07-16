@@ -2,11 +2,10 @@ pipeline {
 	agent { label "master" }
 	environment {
 		PATH=sh(script:"echo $PATH:/usr/local/bin", returnStdout:true).trim()
-        APP_FILE = fileExists "/home/ubuntu/jenkins-kubernetes-deploy"
 		AWS_REGION = "us-east-1"
 		APP_REPO_NAME = "mehmetafsar510"
         APP_NAME = "phonebook"
-        AWS_STACK_NAME = "Mehmet-Phonebook-App-${BUILD_NUMBER}"
+        AWS_STACK_NAME = "MehmetK8s-Phonebook-App-${BUILD_NUMBER}"
         CFN_TEMPLATE="kubernetes-env-cfn.yml"
         CFN_KEYPAIR="the_doctor"
         HOME_FOLDER = "/home/ubuntu"
@@ -15,7 +14,7 @@ pipeline {
 	stages {
 		stage('Build Docker Result Image') {
 			steps {
-				sh 'docker build -t phonebook:latest https://github.com/mehmetafsar510/jenkins-k8s/tree/E000/result'
+				sh 'docker build -t phonebook:latest ${GIT_URL}#:result'
 				sh 'docker tag phonebook:latest $APP_REPO_NAME/phonebook-results:latest'
 				sh 'docker tag phonebook:latest $APP_REPO_NAME/phonebook-results:${BUILD_ID}'
 				sh 'docker images'
@@ -23,7 +22,7 @@ pipeline {
 		}
         stage('Build Docker Update Image') {
 			steps {
-				sh 'docker build -t phonebook:latest https://github.com/mehmetafsar510/jenkins-k8s/tree/E000/kubernetes'
+				sh 'docker build -t phonebook:latest ${GIT_URL}#:kubernetes'
 				sh 'docker tag phonebook:latest $APP_REPO_NAME/phonebook-updates:latest'
 				sh 'docker tag phonebook:latest $APP_REPO_NAME/phonebook-updates:${BUILD_ID}'
 				sh 'docker images'
@@ -68,16 +67,13 @@ pipeline {
             }
         }
         stage('Test the infrastructure') {
-            environment {
-                MASTER_PUBLİC_IP=sh(script:'aws ec2 describe-instances --region ${AWS_REGION} --filters Name=tag-value,Values=k8s-master Name=tag-value,Values=${AWS_STACK_NAME} --query Reservations[*].Instances[*].[PublicIpAddress] --output text', returnStdout:true).trim()
-            }
             steps {
-                echo "Testing if the Docker Swarm is ready or not, by checking Viz App on Grand Master with Public Ip Address: ${MASTER_INSTANCE_PUBLIC_IP}:8080"
+                echo "Testing if the K8s cluster is ready or not"
             script {
                 sshagent(credentials : ['my-ssh-key']) {
                     while(true) {
                         try {
-                          sh "ssh -t -t ubuntu@${MASTER_PUBLİC_IP} -o StrictHostKeyChecking=no kubectl get nodes | grep -i 'worker'"
+                          sh "ssh -t -t ubuntu@${MASTER_INSTANCE_PUBLIC_IP} -o StrictHostKeyChecking=no kubectl get nodes | grep -i 'kube-worker-1'"
                           echo "Successfully created K8s cluster."
                           break
                         }
@@ -91,13 +87,10 @@ pipeline {
         }
     }
         stage('Check the App File') {
-			environment {
-                MASTER_PUBLİC_IP=sh(script:'aws ec2 describe-instances --region ${AWS_REGION} --filters Name=tag-value,Values=k8s-master Name=tag-value,Values=${AWS_STACK_NAME} --query Reservations[*].Instances[*].[PublicIpAddress] --output text', returnStdout:true).trim()
-            }
             steps { 
                 script {
 				    sshagent(credentials : ['my-ssh-key']) {
-                        sh "ssh -t -t ubuntu@${MASTER_PUBLİC_IP} -o StrictHostKeyChecking=no 'https://github.com/mehmetafsar510/jenkins-k8s.git && chmod u+r+x deploy.sh && sed -i -e 's/\r$//' deploy.sh && \
+                        sh "ssh -t -t ubuntu@${MASTER_INSTANCE_PUBLIC_IP} -o StrictHostKeyChecking=no 'https://github.com/mehmetafsar510/jenkins-k8s.git && chmod u+r+x deploy.sh && sed -i -e 's/\r$//' deploy.sh && \
 sh deploy.sh || kubectl set image deployment/phonebook-deployment phonebook=mehmet/phonebook:${BUILD_ID} --record'"
                      }
                 }
