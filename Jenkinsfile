@@ -47,8 +47,19 @@ pipeline {
 		stage('creating infrastructure for the Application') {
             steps {
                 echo 'creating infrastructure for the Application'
-                sh "aws cloudformation create-stack --region ${AWS_REGION} --stack-name ${AWS_STACK_NAME} --capabilities CAPABILITY_IAM --template-body file://${CFN_TEMPLATE} --parameters ParameterKey=KeyPairName,ParameterValue=${CFN_KEYPAIR}"
-
+                
+                sh '''
+                    MasterIp=$(aws ec2 describe-instances --region ${AWS_REGION} --filters Name=tag-value,Values=grand-master Name=tag-value,Values=${APP_STACK_NAME} --query Reservations[*].Instances[*].[PublicIpAddress] --output text)  || true
+                    if [ "$MasterIp" == '' ]
+                    then
+                        aws cloudformation create-stack --stack-name ${APP_STACK_NAME} \
+                          --capabilities CAPABILITY_IAM \
+                          --template-body file://${CFN_TEMPLATE} \
+                          --region ${AWS_REGION} --parameters ParameterKey=KeyPairName,ParameterValue=${CFN_KEYPAIR} 
+                          
+                        
+                    fi
+                '''
             script {
                 while(true) {
                         
