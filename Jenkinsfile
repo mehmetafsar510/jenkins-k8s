@@ -242,6 +242,7 @@ pipeline {
                 sh 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ${JENKINS_HOME}/.ssh/${CFN_KEYPAIR}.pem ubuntu@\"${MASTER_INSTANCE_PUBLIC_IP}" sudo kubeadm init phase certs all --apiserver-advertise-address=0.0.0.0 --apiserver-cert-extra-sans=$MASTER_INSTANCE_PRIVATE_IP,$MASTER_INSTANCE_PUBLIC_IP'
                 sh "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ${JENKINS_HOME}/.ssh/${CFN_KEYPAIR}.pem ubuntu@\'${MASTER_INSTANCE_PUBLIC_IP}' bash ssl-script.sh"
                 sh 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ${JENKINS_HOME}/.ssh/${CFN_KEYPAIR}.pem ubuntu@\"${MASTER_INSTANCE_PUBLIC_IP}" sudo systemctl restart kubelet'
+                sleep(10)
                 sh "kubectl apply -f kubernetes"
                 sh "kubectl apply -f result"                       
             }
