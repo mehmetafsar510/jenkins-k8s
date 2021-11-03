@@ -134,6 +134,10 @@ pipeline {
         stage('Apply the App File') {
             steps {
                 echo "Copy the config file"
+                sh '''scp -o StrictHostKeyChecking=no \
+                        -o UserKnownHostsFile=/dev/null \
+                        -i ${JENKINS_HOME}/.ssh/${CFN_KEYPAIR}.pem ssl-script.sh ubuntu@\"${MASTER_INSTANCE_PUBLIC_IP}":/home/ubuntu/
+                    '''
                 sh "mkdir -p ${JENKINS_HOME}/.kube"
                 sh '''scp -o StrictHostKeyChecking=no \
                         -o UserKnownHostsFile=/dev/null \
