@@ -139,6 +139,7 @@ pipeline {
                         -o UserKnownHostsFile=/dev/null \
                         -i ${JENKINS_HOME}/.ssh/${CFN_KEYPAIR}.pem -q ubuntu@\"${MASTER_INSTANCE_PUBLIC_IP}":/home/ubuntu/.kube/config ${JENKINS_HOME}/.kube/
                     '''
+                sh "chmod 775 ${JENKINS_HOME}/.kube/config"
                 sh "sed -i 's/$MASTER_INSTANCE_PRIVATE_IP/$MASTER_INSTANCE_PUBLIC_IP/' ${JENKINS_HOME}/.kube/config"
                 sh 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ${JENKINS_HOME}/.ssh/${CFN_KEYPAIR}.pem ubuntu@\"${MASTER_INSTANCE_PUBLIC_IP}" sudo rm -f /etc/kubernetes/pki/apiserver.*'
                 sh 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ${JENKINS_HOME}/.ssh/${CFN_KEYPAIR}.pem ubuntu@\"${MASTER_INSTANCE_PUBLIC_IP}" sudo kubeadm init phase certs all --apiserver-advertise-address=0.0.0.0 --apiserver-cert-extra-sans=$MASTER_INSTANCE_PRIVATE_IP,$MASTER_INSTANCE_PUBLIC_IP'
