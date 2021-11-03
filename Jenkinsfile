@@ -9,8 +9,8 @@ pipeline {
         CFN_TEMPLATE="kubernetes-env-cf.yml"
         CFN_KEYPAIR="doctor"
         DOMAIN_NAME = "mehmetafsar.net"
-        FQDN = "search.mehmetafsar.net"
-        FDN="add.mehmetafsar.net"
+        FQDN = "add.mehmetafsar.net"
+        FDN="search.mehmetafsar.net"
         HOME_FOLDER = "/home/ubuntu"
         GIT_FOLDER = sh(script:'echo ${GIT_URL} | sed "s/.*\\///;s/.git$//"', returnStdout:true).trim()
 	}
