@@ -1,5 +1,0 @@
-chmod u+r+x deploy.sh
-sed -i -e 's/\r$//' deploy.sh
-./deploy.sh
-
-(sýrayla uygulayýn))
