@@ -89,7 +89,7 @@ pipeline {
                 while(true) {
                         
                         echo "K8s master is not UP and running yet. Will try to reach again after 10 seconds..."
-                        sleep(10)
+                        sleep(2)
 
                         ip = sh(script:'aws ec2 describe-instances --region ${AWS_REGION} --filters Name=tag-value,Values=k8s-master Name=tag-value,Values=${APP_STACK_NAME} --query Reservations[*].Instances[*].[PublicIpAddress] --output text | sed "s/\\s*None\\s*//g"', returnStdout:true).trim()
 
@@ -102,28 +102,28 @@ pipeline {
                 while(true) {
                         
                         echo "Kube Master is not UP and running yet. Will try to reach again after 10 seconds..."
-                        sleep(5)
+                        sleep(2)
 
                         ip = sh(script:'aws ec2 describe-instances --region ${AWS_REGION} --filters Name=tag-value,Values=k8s-master  --query Reservations[*].Instances[*].[PrivateIpAddress] --output text | sed "s/\\s*None\\s*//g"', returnStdout:true).trim()
 
                         if (ip.length() >= 7) {
                             echo "Kube Master Private Ip Address Found: $ip"
                             env.MASTER_INSTANCE_PRIVATE_IP = "$ip"
-                            sleep(5)
+                            sleep(2)
                             break
                         }
                     }
                 while(true) {
                         
                         echo "Worker is not UP and running yet. Will try to reach again after 10 seconds..."
-                        sleep(5)
+                        sleep(2)
 
                         ip = sh(script:'aws ec2 describe-instances --region ${AWS_REGION} --filters Name=tag-value,Values=worker  --query Reservations[*].Instances[*].[PublicIpAddress] --output text | sed "s/\\s*None\\s*//g"', returnStdout:true).trim()
 
                         if (ip.length() >= 7) {
                             echo "Worker Public Ip Address Found: $ip"
                             env.WORKER_PUBLIC_IP = "$ip"
-                            sleep(5)
+                            sleep(2)
                             break
                         }
                     }
