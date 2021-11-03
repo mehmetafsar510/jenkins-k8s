@@ -235,7 +235,7 @@ pipeline {
                 sh "mkdir -p ${JENKINS_HOME}/.kube"
                 sh '''scp -o StrictHostKeyChecking=no \
                         -o UserKnownHostsFile=/dev/null \
-                        -i ${JENKINS_HOME}/.ssh/${CFN_KEYPAIR}.pem -q ubuntu@\"${MASTER_INSTANCE_PUBLIC_IP}":/home/ubuntu/.kube/config ${JENKINS_HOME}/.kube/
+                        -i ${JENKINS_HOME}/.ssh/${CFN_KEYPAIR}.pem  ubuntu@\"${MASTER_INSTANCE_PUBLIC_IP}":/home/ubuntu/.kube/config ${JENKINS_HOME}/.kube/
                     '''
                 sh "sed -i 's/$MASTER_INSTANCE_PRIVATE_IP/$MASTER_INSTANCE_PUBLIC_IP/' ${JENKINS_HOME}/.kube/config"
                 sh 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ${JENKINS_HOME}/.ssh/${CFN_KEYPAIR}.pem ubuntu@\"${MASTER_INSTANCE_PUBLIC_IP}" sudo rm -f /etc/kubernetes/pki/apiserver.*'
