@@ -182,7 +182,7 @@ pipeline {
                     sh "sed -i 's|{{DNS}}|$ELB_DNS|g' deleterecord.json"
                     sh "sed -i 's|{{FQDN}}|$FDN|g' deleterecord.json"
                     sh '''
-                        RecordSet=$(aws route53 list-resource-record-sets   --hosted-zone-id $ZONE_ID   --query ResourceRecordSets[] | grep -i $FQDN) || true
+                        RecordSet=$(aws route53 list-resource-record-sets   --hosted-zone-id $ZONE_ID   --query ResourceRecordSets[] | grep -i $FDN) || true
                         if [ "$RecordSet" != '' ]
                         then
                             aws route53 change-resource-record-sets --hosted-zone-id $ZONE_ID --change-batch file://deleterecord.json
