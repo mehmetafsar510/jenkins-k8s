@@ -275,7 +275,7 @@ pipeline {
             	sh 'docker image prune -af'
         	}
             success {
-            echo "You are Greattt...You can visit https://$FQDN and for visualizer https://$FDN"
+            echo "You are Greattt...You can visit https://$FQDN and  https://$FDN"
         }
 	}
 }
