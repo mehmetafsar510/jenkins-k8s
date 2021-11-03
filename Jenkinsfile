@@ -117,12 +117,12 @@ pipeline {
                     }
                 }
             }
-        stage('Check the App File') {
+        stage('Apply the App File') {
             steps {
                 sh "mkdir -p ${JENKINS_HOME}/.kube"
                 sh '''scp -o StrictHostKeyChecking=no \
                         -o UserKnownHostsFile=/dev/null \
-                        -i ${JENKINS_HOME}/.ssh/${CFN_KEYPAIR}.pem -q ubuntu@\"${MASTER_INSTANCE_PUBLIC_IP}":/home/ubuntu/kubeconfig ${JENKINS_HOME}/.kube/
+                        -i ${JENKINS_HOME}/.ssh/${CFN_KEYPAIR}.pem -q ubuntu@\"${MASTER_INSTANCE_PUBLIC_IP}":/home/ubuntu/.kube/config ${JENKINS_HOME}/.kube/
                 '''
                 sh "chmod 400 ${JENKINS_HOME}/.kube/config"
                 sh "kubectl apply -f kubernetes"
