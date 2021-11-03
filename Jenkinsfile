@@ -5,7 +5,7 @@ pipeline {
 		AWS_REGION = "us-east-1"
 		APP_REPO_NAME = "mehmetafsar510"
         APP_NAME = "phonebook"
-        AWS_STACK_NAME = "MehmetK8s-Phonebook-App"
+        APP_STACK_NAME = "MehmetK8s-Phonebook-App"
         CFN_TEMPLATE="kubernetes-env-cf.yml"
         CFN_KEYPAIR="doctor"
         HOME_FOLDER = "/home/ubuntu"
