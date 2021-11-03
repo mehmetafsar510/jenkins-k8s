@@ -5,9 +5,9 @@ pipeline {
 		AWS_REGION = "us-east-1"
 		APP_REPO_NAME = "mehmetafsar510"
         APP_NAME = "phonebook"
-        AWS_STACK_NAME = "MehmetK8s-Phonebook-App-${BUILD_NUMBER}"
+        AWS_STACK_NAME = "MehmetK8s-Phonebook-App"
         CFN_TEMPLATE="kubernetes-env-cf.yml"
-        CFN_KEYPAIR="the_doctor"
+        CFN_KEYPAIR="doctor"
         HOME_FOLDER = "/home/ubuntu"
         GIT_FOLDER = sh(script:'echo ${GIT_URL} | sed "s/.*\\///;s/.git$//"', returnStdout:true).trim()
 	}
@@ -44,12 +44,34 @@ pipeline {
 				}
 			}
 		}
+        stage('get-keypair'){
+            agent any
+            steps{
+                sh '''
+                    if [ -f "${CFN_KEYPAIR}.pem" ]
+                    then 
+                        echo "file exists..."
+                    else
+                        aws ec2 create-key-pair \
+                          --region ${AWS_REGION} \
+                          --key-name ${CFN_KEYPAIR} \
+                          --query KeyMaterial \
+                          --output text > ${CFN_KEYPAIR}.pem
+                        chmod 400 ${CFN_KEYPAIR}.pem
+                        
+                        ssh-keygen -y -f ${CFN_KEYPAIR}.pem >> ${CFN_KEYPAIR}.pub
+                        cp -f ${CFN_KEYPAIR}.pem ${JENKINS_HOME}/.ssh
+                        chown jenkins:jenkins ${JENKINS_HOME}/.ssh/${CFN_KEYPAIR}.pem
+                    fi
+                '''                
+            }
+        }
 		stage('creating infrastructure for the Application') {
             steps {
                 echo 'creating infrastructure for the Application'
                 
                 sh '''
-                    MasterIp=$(aws ec2 describe-instances --region ${AWS_REGION} --filters Name=tag-value,Values=grand-master Name=tag-value,Values=${APP_STACK_NAME} --query Reservations[*].Instances[*].[PublicIpAddress] --output text)  || true
+                    MasterIp=$(aws ec2 describe-instances --region ${AWS_REGION} --filters Name=tag-value,Values=k8s-master Name=tag-value,Values=${APP_STACK_NAME} --query Reservations[*].Instances[*].[PublicIpAddress] --output text)  || true
                     if [ "$MasterIp" == '' ]
                     then
                         aws cloudformation create-stack --stack-name ${APP_STACK_NAME} \
@@ -80,11 +102,10 @@ pipeline {
         stage('Test the infrastructure') {
             steps {
                 echo "Testing if the K8s cluster is ready or not Master Public Ip Address: ${MASTER_INSTANCE_PUBLIC_IP}"
-                script {
-                    sshagent(credentials : ['my-ssh-key']) {
+                script {                                                                // sshagent(credentials : ['my-ssh-key']) 
                         while(true) {
                             try {
-                              sh 'ssh -t -t ubuntu@\"${MASTER_INSTANCE_PUBLIC_IP}" -o StrictHostKeyChecking=no kubectl get nodes | grep -i kube-worker-1'
+                              sh 'ssh -i ${JENKINS_HOME}/.ssh/${CFN_KEYPAIR}.pem ubuntu@\"${MASTER_INSTANCE_PUBLIC_IP}" -o StrictHostKeyChecking=no kubectl get nodes | grep -i kube-worker-1'
                               echo "Successfully created K8s cluster."
                               break
                             }
@@ -96,17 +117,16 @@ pipeline {
                     }
                 }
             }
-        }
         stage('Check the App File') {
-            steps { 
-                script {
-				    sshagent(credentials : ['my-ssh-key']) {
-                        sh 'ssh -t -t ubuntu@\"${MASTER_INSTANCE_PUBLIC_IP}" -o StrictHostKeyChecking=no git clone ${GIT_URL}'
-                        sh 'ssh -t -t ubuntu@\"${MASTER_INSTANCE_PUBLIC_IP}" -o StrictHostKeyChecking=no chmod 777 ${HOME_FOLDER}/${GIT_FOLDER}/start.sh'
-                        sh 'ssh -t -t ubuntu@\"${MASTER_INSTANCE_PUBLIC_IP}" -o StrictHostKeyChecking=no sh ${HOME_FOLDER}/${GIT_FOLDER}/start.sh'
-                        sh 'ssh -t -t ubuntu@\"${MASTER_INSTANCE_PUBLIC_IP}" -o StrictHostKeyChecking=no sh ${HOME_FOLDER}/${GIT_FOLDER}/deploy.sh'
-                     }
-                }
+            steps {
+                sh "mkdir -p ${JENKINS_HOME}/.kube"
+                sh '''scp -o StrictHostKeyChecking=no \
+                        -o UserKnownHostsFile=/dev/null \
+                        -i ${JENKINS_HOME}/.ssh/${CFN_KEYPAIR}.pem -q ubuntu@\"${MASTER_INSTANCE_PUBLIC_IP}":/home/ubuntu/kubeconfig ${JENKINS_HOME}/.kube/
+                '''
+                sh "chmod 400 ${JENKINS_HOME}/.kube/config"
+                sh "kubectl apply -f kubernetes"
+                sh "kubectl apply -f result"                       
             }
         }
 	}
